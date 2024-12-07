@@ -182,7 +182,7 @@ const MessageWindow = () => {
             ))}
           </Carousel>
         </div>
-         <div className="messages" style={{ overflowY: 'auto', maxHeight: '400px' }}>
+         <div className="messages" style={{ overflowY: 'auto', maxHeight: 'fit-content' }}>
           {messages.map((message, index) => (
             <div
               key={index}
