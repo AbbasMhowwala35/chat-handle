@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Badge, Carousel, Form } from 'react-bootstrap';
 import img1 from '../images/2.jpeg';
 import img2 from '../images/ai.jpg';
@@ -9,7 +9,7 @@ const MessageWindow = () => {
   const [newMessage, setNewMessage] = useState('');
   const [attachment, setAttachment] = useState(null);
   const [filteredProfiles, setFilteredProfiles] = useState([]);
-
+  const [threadId, setThreadId] = useState(null);
   const handleSendMessage = async () => {
     if (newMessage.trim() || attachment) {
       const userMessage = {
@@ -27,7 +27,7 @@ const MessageWindow = () => {
           },
           body: JSON.stringify({
             message: newMessage,
-            threadId: 'thread_dpEuo3NKyRooTm8VTk8yE44u',
+            threadId: threadId,
           }),
         });
         if (response.ok) {
@@ -64,6 +64,28 @@ const MessageWindow = () => {
       setAttachment(event.target.files[0]);
     }
   };
+  useEffect(() => {
+    const fetchThreadId = async () => {
+      try {
+        const startResponse = await fetch('https://cors-anywhere.herokuapp.com/http://3.108.123.184:4000/api/start', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({}), 
+        });
+        if (!startResponse.ok) {
+          console.error('Failed to fetch thread ID');
+          return;
+        }
+        const startData = await startResponse.json();
+        setThreadId(startData.threadId);
+      } catch (error) {
+        console.error('Error fetching thread ID:', error);
+      }
+    };
+    fetchThreadId(); 
+  }, []);
 
   return (
     <div
