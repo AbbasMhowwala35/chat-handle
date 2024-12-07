@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Badge, Carousel, Form } from 'react-bootstrap';
 import img1 from '../images/2.jpeg';
-
+import img2 from '../images/ai.jpg';
 const MessageWindow = () => {
   const [messages, setMessages] = useState([
     { id: 1, text: 'Hi there! I’m Mr. Lynx, your AI assistant. Let me help you find the perfect expert! Simply describe the person you’re searching for, and I’ll connect you with the best fit.', sender: 'bot' },
@@ -78,7 +78,7 @@ const MessageWindow = () => {
       <div className="message-header">
         <div className="content">
           <div className="user-item read">
-            <img src={img1} alt="Ghanshyam Rawat" className="avatar me-2" />
+            <img src={img2} alt="Ghanshyam Rawat" className="avatar me-2" />
             <div className="user-details">
               <h6 style={{ marginBottom: '2px' }}>AI Bot</h6>
               <p style={{ color: '#21d07a' }}>Online</p>
@@ -106,9 +106,7 @@ const MessageWindow = () => {
           {messages.map((message, index) => (
             <div
               key={index}
-              className={`message-container ${message.sender === 'bot' ? 'bot' : 'user'} ${
-                message.id === 3 ? 'd-block' : ''
-              }`}
+              className={`message-container ${message.sender === 'bot' ? 'bot' : 'user'}`}
             >
               <div className={`message-bubble ${message.sender === 'bot' ? 'bot' : 'user'}`}>
                 {message.text}
