@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Badge, Carousel, Form } from 'react-bootstrap';
 import img1 from '../images/2.jpeg';
 import img2 from '../images/ai.jpg';
@@ -8,19 +8,26 @@ const MessageWindow = () => {
     { id: 1, text: 'Hi there! I’m Mr. Lynx, your AI assistant. Let me help you find the perfect expert! Simply describe the person you’re searching for, and I’ll connect you with the best fit.', sender: 'bot' },
   ]);
   const [newMessage, setNewMessage] = useState('');
+  const [userMessage, setUserMessage] = useState('');
   const [attachment, setAttachment] = useState(null);
   const [filteredProfiles, setFilteredProfiles] = useState([]);
   const [threadId, setThreadId] = useState(null);
+  const messagesEndRef = useRef(null);
 
+  // Scroll to the bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
   const handleSendMessage = async () => {
     if (newMessage.trim() || attachment) {
       const userMessage = {
         id: messages.length + 1,
-        text: newMessage || 'File Attached',
+        text: newMessage,
         sender: 'user',
         attachment,
       };
       setMessages([...messages, userMessage]);
+      setNewMessage('');
       try {
         const response = await fetch('https://cors-anywhere.herokuapp.com/http://3.108.123.184:4000/api/chat', {
           method: 'POST',
@@ -32,42 +39,50 @@ const MessageWindow = () => {
             threadId: threadId,
           }),
         });
+  
         if (response.ok) {
           const data = await response.json();
-          const botMessage = {
-            id: messages.length + 2,
-            text: data.response,
-            sender: 'bot',
-          };
-          setMessages((prev) => [...prev, botMessage]);
           if (data.profiles) {
             const parsedProfiles = data.profiles.map((profile, index) => ({
-              id: index + 1,
+              id: messages.length + 2 + index,
               name: profile[0],
               profession: profile[1],
               location: profile[3],
               avatar: profile[4] || 'https://via.placeholder.com/50',
             }));
             setFilteredProfiles(parsedProfiles);
-            // Add profiles to messages as a new bot message
-            setMessages((prev) => [
-              ...prev,
+            const profilesMessage = [
               {
-                id: prev.length + 1,
+                id: messages.length + 2,
                 text: 'Here are some relevant profiles:',
                 sender: 'bot',
               },
-            ]);
-            setMessages((prev) => [
-              ...prev,
-              ...parsedProfiles.map((profile) => ({
-                id: prev.length + 1,
+              ...parsedProfiles.map((profile, idx) => ({
+                id: messages.length + 3 + idx,
                 text: `${profile.name}, ${profile.profession}, ${profile.location}. 
                 <a href="${profile.avatar}" target="_blank" rel="noopener noreferrer" style="font-size: 0.9rem; color: #007bff; text-decoration: underline;">
                   View Profile
                 </a>`,
                 sender: 'bot',
               })),
+            ];
+            setMessages((prev) => [
+              ...prev,
+              ...profilesMessage,
+              {
+                id: prev.length + profilesMessage.length + 1,
+                text: data.response,
+                sender: 'bot',
+              },
+            ]);
+          } else {
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: prev.length + 1,
+                text: data.response,
+                sender: 'bot',
+              },
             ]);
           }
         } else {
@@ -80,7 +95,7 @@ const MessageWindow = () => {
       setAttachment(null);
     }
   };
-
+  
   const handleAttachmentChange = (event) => {
     if (event.target.files) {
       setAttachment(event.target.files[0]);
@@ -167,7 +182,7 @@ const MessageWindow = () => {
             ))}
           </Carousel>
         </div>
-        <div className="messages">
+         <div className="messages" style={{ overflowY: 'auto', maxHeight: '400px' }}>
           {messages.map((message, index) => (
             <div
               key={index}
@@ -210,6 +225,7 @@ const MessageWindow = () => {
                 </div>
               </div>
             ))} */}
+            <div ref={messagesEndRef} />
         </div>
         <div className="message-input">
           <label htmlFor="attachment" className="attachment-icon">
@@ -229,7 +245,7 @@ const MessageWindow = () => {
           <input
             type="text"
             className="form-control"
-            value={newMessage}
+            value={userMessage || newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyDown={handleKeyPress}
           />
